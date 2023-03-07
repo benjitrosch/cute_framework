@@ -228,6 +228,22 @@ if(CUTE_FRAMEWORK_CIMGUI)
 	target_compile_definitions(cute PUBLIC CUTE_USE_CIMGUI)
 endif()
 
+# SDL2 for platform support.
+# Just don't build the shared library at all, it's not needed.
+set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
+if(EMSCRIPTEN)
+	# Emscripten provides its own SDL2.
+else()
+	fetch_content_with_folder(
+		SDL2
+		GIT_REPOSITORY https://github.com/libsdl-org/SDL
+		GIT_TAG release-2.26.1
+		GIT_PROGRESS TRUE
+	)
+endif()
+set(CUTE_LINK_LIBS ${CUTE_LINK_LIBS} SDL2-static)
+target_include_directories(cute PUBLIC ${SDL2_INCLUDE_DIRS})
+
 # PhysicsFS, always statically linked.
 set(PHYSFS_SRCS
 	libraries/physfs/physfs_archiver_7z.c
@@ -272,8 +288,7 @@ if(MACOSX)
 endif()
 
 if(LINUX)
-	find_package(OpenGL REQUIRED)
-	set(CUTE_LINK_LIBS ${CUTE_LINK_LIBS} ${IOKIT} ${FOUNDATION} ${SECURITY} ${OPENGL_LIBRARIES})
+	set(CUTE_LINK_LIBS ${CUTE_LINK_LIBS} ${IOKIT} ${FOUNDATION} ${SECURITY})
 endif()
 
 add_library(physfs STATIC ${PHYSFS_SRCS})
@@ -291,22 +306,6 @@ if(CUTE_FRAMEWORK_WITH_HTTPS)
 	)
 	set(CUTE_LINK_LIBS ${CUTE_LINK_LIBS} mbedx509 mbedtls mbedcrypto)
 endif()
-
-# SDL2 for platform support.
-# Just don't build the shared library at all, it's not needed.
-set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
-if(EMSCRIPTEN)
-	# Emscripten provides its own SDL2.
-else()
-	fetch_content_with_folder(
-		SDL2
-		GIT_REPOSITORY https://github.com/libsdl-org/SDL
-		GIT_TAG release-2.26.1
-		GIT_PROGRESS TRUE
-	)
-endif()
-set(CUTE_LINK_LIBS ${CUTE_LINK_LIBS} SDL2-static)
-target_include_directories(cute PUBLIC ${SDL2_INCLUDE_DIRS})
 
 # Some platform specific settings.
 if(EMSCRIPTEN)
